@@ -1,0 +1,14 @@
+{
+	"name": "serialportt",
+	"url": "https://github.com/tong/hxserialport",
+	"license": "MIT",
+	"classPath": "src",
+	"tags": ["serial","termios"],
+	"description": "",
+	"releasenote": "See CHANGELOG",
+	"version": "0.0.0",
+	"contributors": ["tong"],
+	"dependencies": {
+		"hashlink": ""
+	}
+}
