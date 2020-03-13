@@ -70,7 +70,8 @@ HL_PRIM int HL_NAME(read)( int fd, vbyte *buf, int size ) {
 
 HL_PRIM int HL_NAME(read_char)( int fd ) {
     unsigned char chr;
-    int len = read( fd, &chr, 1 );
+    //int len = read( fd, &chr, 1 );
+    read( fd, &chr, 1 );
     //printf("############ len %i\n", len );
     //printf("############ chr %i\n", chr );
     return chr;
