@@ -26,6 +26,16 @@ using StringTools;
 }
 */
 
+typedef SerialPortInfo = {
+	path: String,
+	?manufacturer: String,
+	?serialNumber: String,
+	?pnpId: String,
+	?locationId: String,
+	?vendorId: String,
+	?productId: String
+}
+
 @:enum abstract BaudRate(Int) to Int {
 	var B9600 = 13; //0x0D;
 	var B115200 = 4098;
@@ -67,6 +77,21 @@ class Serial {
 		trace(c);
 		//if( c != 0 ) throw 'failed to write serial $fd';
 	}
+	
+	public function flush() {
+		if( !serial_flush( fd ) ) {
+			throw haxe.io.Error.Custom("flush() failure");
+		}
+	}
+
+	/**
+		Waits until all output data has been transmitted to the serial port.
+	**/
+	public function drain() {
+		if( !serial_drain( fd ) ) {
+			throw haxe.io.Error.Custom("drain() failure");
+		}
+	}
 
 	public static function open( path : String, baudRate : BaudRate ) : Serial {
 		var fd = serial_open_port( @:privateAccess path.bytes, baudRate );
@@ -92,21 +117,71 @@ class Serial {
 	@:hlNative("serialport","write")
 	static function serial_write( fd : Int, bytes : hl.Bytes, pos : Int, len : Int ) : Int { return 0; }
 
-	/*
-	public static function list() {
-		var p = new sys.io.Process("ls",["-CF","/sys/class/tty"]);
-		var code = p.exitCode( true );
-		trace(code);
-		switch code {
-			case 0:
-				var str = p.stdout.readAll().toString();
-				var ttys = ~/[, ]/g.split(str).map( s -> return s.trim() );
-				for( t in ttys ) trace(t);
-				default:
-					trace( p.stderr.readAll().toString() );
-				}
-				p.close();
-				
+	@:hlNative("serialport","flush")
+	static function serial_flush( fd : Int ) : Bool return false;
+
+	@:hlNative("serialport","drain")
+	static function serial_drain( fd : Int ) : Bool return false;
+
+	public static function list() : Array<SerialPortInfo> {
+		var ports = new Array<SerialPortInfo>();
+		var p = new sys.io.Process( "udevadm", ["info","-e"] );
+		var port : SerialPortInfo = cast {};
+		var skip = false;
+		while( true ) {
+			var line = try p.stdout.readLine() catch(e:haxe.io.Eof) {
+				break;
 			}
-	*/
+			var type = line.substr(0,1);
+			var data = line.substr(3);
+			if( type == "P" ) {
+				port = {
+					manufacturer: null,
+					serialNumber: null,
+					pnpId: null,
+					locationId: null,
+					vendorId: null,
+					productId: null,
+					path: null
+				}
+				skip = false;
+				continue;
+			}
+			if( skip )
+				continue;
+			if( type == "N" ) {
+				if( ~/(tty(S|WCH|ACM|USB|AMA|MFD|O|XRUSB)|rfcomm)/.match( line ) ) {
+					ports.push( port );
+				} else {
+					skip = true;
+				}
+			}
+			if( type == "E" ) {
+				var e = ~/^(.+)=(.*)/;
+				if( !e.match( data ) )
+					continue;
+				var k = e.matched(1);
+				var v = e.matched(2);
+				var prop = switch k.toUpperCase() {
+				case 'DEVNAME': 'path';
+				case 'ID_VENDOR_ENC': 'manufacturer';
+				case 'ID_SERIAL_SHORT': 'serialNumber';
+				case 'ID_VENDOR_ID': 'vendorId';
+				case 'ID_MODEL_ID': 'productId';
+				case 'DEVLINKS': 'pnpId';
+				case _: continue;
+				}
+				if( prop == null )
+					continue;
+				Reflect.setField( port, prop, v );
+			}
+		}
+		var code = p.exitCode( true );
+		p.close();
+		if( code != 0 )
+			throw 'failed to list serial devices';
+		return ports;
+		
+	}
+	
 }
