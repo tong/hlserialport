@@ -15,7 +15,11 @@ HL_PRIM int HL_NAME(open_port)( vbyte *path, int baudRate ) {
     const char *_path = hl_to_utf8( (uchar*)path );
     //printf("############ %s\n",_path );
 
-    int fd = open( _path, O_RDWR | O_NOCTTY | O_NDELAY );
+    //int fd = open( _path, O_RDWR | O_NOCTTY | O_NDELAY );
+    //O_NDELAY //Use non-blocking I/O. On some systems this also means the RS232 DCD signal line is ignored
+    //int fd = open( _path, O_RDWR | O_NOCTTY );
+    int flags = (O_RDWR | O_NOCTTY | O_SYNC);
+    int fd = open( _path, flags );
     if( fd == -1 ) {
         printf("Error %i from open: %s\n", errno, strerror(errno));
         //perror("open_port: Unable to open ");
@@ -32,6 +36,8 @@ HL_PRIM int HL_NAME(open_port)( vbyte *path, int baudRate ) {
         printf("Error from tcgetattr: %s\n", strerror(errno));
         return -1;
     }
+
+    //TODO configuration
 
     speed_t speed = (speed_t)baudRate;
     cfsetospeed( &tty, speed );
@@ -85,6 +91,16 @@ HL_PRIM int HL_NAME(write)( int fd, vbyte *buf, int pos, int len ) {
     return 0;
 }
 
+HL_PRIM bool HL_NAME(flush)( int fd ) {
+    int r = tcflush( fd, TCIOFLUSH );
+    return r == 0;
+}
+
+HL_PRIM bool HL_NAME(drain)( int fd ) {
+    int r = tcdrain( fd );
+    return r == 0;
+}
+
 /*
 HL_PRIM int HL_NAME(set_interface_attribs)( int fd ) {
     return 0;
@@ -116,5 +132,7 @@ DEFINE_PRIM(_VOID, close_port, _I32);
 DEFINE_PRIM(_I32, read, _I32 _BYTES _I32);
 DEFINE_PRIM(_I32, read_char, _I32);
 DEFINE_PRIM(_I32, write, _I32 _BYTES _I32 _I32);
+DEFINE_PRIM(_BOOL, flush, _I32);
+DEFINE_PRIM(_BOOL, drain, _I32);
 
 //DEFINE_PRIM(_I32, set_baudrate, _I32 _I32);
