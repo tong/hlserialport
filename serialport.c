@@ -62,8 +62,8 @@ int toDataBitsConstant(int dataBits) {
 HL_PRIM int HL_NAME(open_port)( vbyte *path, int baudRate, int dataBits ) {
 
     const char *_path = hl_to_utf8( (uchar*)path );
-    //printf("############ %s\n",_path );
-    int _dataBits = toDataBitsConstant( dataBits );
+    const speed_t _baudRate = toBaudConstant( baudRate );
+    const int _dataBits = toDataBitsConstant( dataBits );
 
     //int fd = open( _path, O_RDWR | O_NOCTTY | O_NDELAY );
     //O_NDELAY //Use non-blocking I/O. On some systems this also means the RS232 DCD signal line is ignored
@@ -87,12 +87,10 @@ HL_PRIM int HL_NAME(open_port)( vbyte *path, int baudRate, int dataBits ) {
         return -1;
     }
 
-    //TODO configuration
+    cfsetospeed( &tty, _baudRate );
+    cfsetispeed( &tty, _baudRate );
 
-    //speed_t speed = (speed_t)baudRate;
-    speed_t speed = toBaudConstant(baudRate);
-    cfsetospeed( &tty, speed );
-    cfsetispeed( &tty, speed );
+    tcflush( fd, TCIOFLUSH ); // throw away all the buffered data
 
     tty.c_cflag |= (CLOCAL | CREAD); 
     tty.c_cflag &= ~CSIZE;
