@@ -4,29 +4,6 @@ import haxe.io.Bytes;
 
 using StringTools;
 
-//TODO
-/*
-@:enum abstract BaudRate(Int) to Int {
-	var _115200 = 115200;
-	var _57600 = 57600;
-	var _38400 = 38400;
-	var _19200 = 19200;
-	var _9600 = 9600;
-	var _4800 = 4800;
-	var _2400 = 2400;
-	var _1800 = 1800;
-	var _1200 = 1200;
-	var _600 = 600;
-	var _300 = 300;
-	var _200 = 200;
-	var _150 = 150;
-	var _134 = 134;
-	var _110 = 110;
-	var _75 = 75;
-	var _50 = 50;
-}
-*/
-
 typedef SerialPortInfo = {
 	var path: String;
 	var ?manufacturer: String;
@@ -37,9 +14,49 @@ typedef SerialPortInfo = {
 	var ?productId: String;
 }
 
-@:enum abstract BaudRate(Int) to Int {
-	var B9600 = 13; //0x0D;
-	var B115200 = 4098;
+/**
+	Rate at which information is transferred  (bits per second).
+**/
+enum abstract BaudRate(Int) to Int {
+	var B115200 = 115200;
+	var B57600 = 57600;
+	var B38400 = 38400;
+	var B19200 = 19200;
+	var B9600 = 9600;
+	var B4800 = 4800;
+	var B2400 = 2400;
+	var B1800 = 1800;
+	var B1200 = 1200;
+	var B600 = 600;
+	var B300 = 300;
+	var B200 = 200;
+	var B150 = 150;
+	var B134 = 134;
+	var B110 = 110;
+	var B75 = 75;
+	var B50 = 50;
+}
+
+/**
+    Number of data bits to transmit.
+*/
+enum abstract DataBits(Int) to Int {
+	var CS8 = 8;
+	var CS7 = 7;
+	var CS6 = 6;
+	var CS5 = 5;
+}
+
+typedef SerialPortOptions = {
+
+	/**
+        The baud rate of the port to be opened.
+    **/
+    ?baudRate : BaudRate,
+
+    /**
+    **/
+    ?dataBits : DataBits,
 }
 
 class SerialPort {
@@ -94,14 +111,14 @@ class SerialPort {
 		}
 	}
 
-	public static function open( path : String, baudRate : BaudRate ) : SerialPort {
-		var fd = serial_open_port( @:privateAccess path.bytes, baudRate );
+	public static function open( path : String, baudRate : BaudRate, ?dataBits : DataBits ) : SerialPort {
+		var fd = serial_open_port( @:privateAccess path.bytes, baudRate, dataBits );
 		if( fd <= 0 ) throw fd;
 		return new SerialPort( path, fd );
 	}
 
 	@:hlNative("serialport","open_port")
-	static function serial_open_port( path : hl.Bytes, baudRate : Int ) : Int { return 0; }
+	static function serial_open_port( path : hl.Bytes, baudRate : BaudRate, dataBits : DataBits ) : Int { return 0; }
 
 	@:hlNative("serialport","close_port")
 	static function serial_close_port( fd : Int ) : Void {} // { return 0; }
