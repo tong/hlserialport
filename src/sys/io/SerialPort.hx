@@ -4,6 +4,7 @@ import haxe.io.Bytes;
 
 using StringTools;
 
+//TODO
 /*
 @:enum abstract BaudRate(Int) to Int {
 	var _115200 = 115200;
@@ -27,13 +28,13 @@ using StringTools;
 */
 
 typedef SerialPortInfo = {
-	path: String,
-	?manufacturer: String,
-	?serialNumber: String,
-	?pnpId: String,
-	?locationId: String,
-	?vendorId: String,
-	?productId: String
+	var path: String;
+	var ?manufacturer: String;
+	var ?serialNumber: String;
+	var ?pnpId: String;
+	var ?locationId: String;
+	var ?vendorId: String;
+	var ?productId: String;
 }
 
 @:enum abstract BaudRate(Int) to Int {
@@ -41,7 +42,7 @@ typedef SerialPortInfo = {
 	var B115200 = 4098;
 }
 
-class Serial {
+class SerialPort {
 
 	public var path(default,null) : String;
 
@@ -93,10 +94,10 @@ class Serial {
 		}
 	}
 
-	public static function open( path : String, baudRate : BaudRate ) : Serial {
+	public static function open( path : String, baudRate : BaudRate ) : SerialPort {
 		var fd = serial_open_port( @:privateAccess path.bytes, baudRate );
 		if( fd <= 0 ) throw fd;
-		return new Serial( path, fd );
+		return new SerialPort( path, fd );
 	}
 
 	@:hlNative("serialport","open_port")
