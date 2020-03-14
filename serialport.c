@@ -118,8 +118,7 @@ HL_PRIM void HL_NAME(close_port)( int fd ) {
 }
 
 HL_PRIM int HL_NAME(read)( int fd, vbyte *buf, int size ) {
-    int len = read( fd, (char*)buf, sizeof(buf) );
-    return len;
+    return read( fd, (char*)buf, sizeof(buf) );
 }
 
 HL_PRIM int HL_NAME(read_char)( int fd ) {
@@ -138,13 +137,11 @@ HL_PRIM int HL_NAME(write)( int fd, vbyte *buf, int pos, int len ) {
 }
 
 HL_PRIM bool HL_NAME(flush)( int fd ) {
-    int r = tcflush( fd, TCIOFLUSH );
-    return r == 0;
+    return tcflush( fd, TCIOFLUSH ) == 0;
 }
 
 HL_PRIM bool HL_NAME(drain)( int fd ) {
-    int r = tcdrain( fd );
-    return r == 0;
+    return tcdrain( fd ) == 0;
 }
 
 DEFINE_PRIM(_I32, open_port, _BYTES _I32 _I32);
