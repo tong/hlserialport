@@ -67,7 +67,6 @@ HL_PRIM int HL_NAME(open_port)( vbyte *path, int baudRate, int dataBits ) {
 
     //int fd = open( _path, O_RDWR | O_NOCTTY | O_NDELAY );
     //O_NDELAY //Use non-blocking I/O. On some systems this also means the RS232 DCD signal line is ignored
-    //int fd = open( _path, O_RDWR | O_NOCTTY );
     int flags = (O_RDWR | O_NOCTTY | O_SYNC);
     int fd = open( _path, flags );
     if( fd == -1 ) {
@@ -123,15 +122,11 @@ HL_PRIM int HL_NAME(read)( int fd, vbyte *buf, int size ) {
 
 HL_PRIM int HL_NAME(read_char)( int fd ) {
     unsigned char chr;
-    //int len = read( fd, &chr, 1 );
     read( fd, &chr, 1 );
     return chr;
 }
 
 HL_PRIM int HL_NAME(write)( int fd, vbyte *buf, int pos, int len ) {
-    //printf("############ write %i %i %i\n", fd, pos, len );
-   // char *_buf = hl_to_utf8( (uchar*)buf );
-   // write(fd, msg, sizeof(msg));
     write( fd, (char*)buf, sizeof(buf) );
     return 0;
 }
